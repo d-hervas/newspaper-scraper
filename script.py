@@ -5,8 +5,8 @@ from elasticsearch import Elasticsearch
 import spacy
 
 webs = [
-    'https://www.abqjournal.com/category/news-more',
-    'https://www.bostonglobe.com/world/',
+    # 'https://www.abqjournal.com/category/news-more',
+    # 'https://www.bostonglobe.com/world/',
     # 'https://www.bostonherald.com/news/world-news/',
     # 'https://www.charlotteobserver.com/news/nation-world/world/',
     # 'https://www.cleveland.com/world/',
@@ -26,6 +26,8 @@ webs = [
     # 'https://www.washingtontimes.com/news/world/',
 ]
 
+es = Elasticsearch()
+
 def startElasticSearch():
     body_settings = {
         "settings": {
@@ -36,33 +38,18 @@ def startElasticSearch():
             "members": {
                 "dynamic": "strict",
                 "properties": {
-                    "newspaper_name": {
-                        "type": "text"
-                    },
-                    "url": {
-                        "type": "text"
-                    },
-                    "publication_date": {
-                        "type": "date"
-                    },
-                    "collection_date": {
-                        "type": "date"
-                    },
-                    "headline": {
-                        "type": "text"
-                    },
-                    "body": {
-                        "type": "text"
-                    },
-                    "tokens": {
-                        "type": "keyword"
-                    }
+                    "newspaper_name": { "type": "text" },
+                    "url": { "type": "text" },
+                    "publication_date": { "type": "date" },
+                    "collection_date": { "type": "date" },
+                    "headline": { "type": "text" },
+                    "body": { "type": "text" },
+                    "tokens": { "type": "keyword" }
                 }
             }
         }
     }
-    # es = Elasticsearch()
-    # es.indices.create(index="articles", ignore=400, body=body_settings)
+    es.indices.create(index="articles", ignore=400, body=body_settings)
 
 def processArticle(article):
     article.download()
@@ -74,7 +61,7 @@ def processArticle(article):
             token_count[token] = token_count[token] + 1
         else:
             token_count[token] = 0
-    body = {
+    es_body = {
         "newspaper_name": paper.brand,
         "url": article.url,
         "publication_date": article.publish_date,
@@ -83,8 +70,7 @@ def processArticle(article):
         "body": article.text,
         "tokens": tokens
     }
-    print(body)
-    # es.index(index='articles', body)
+    es.index(index='articles', body={es_body})
 
 
 class Category(object):
@@ -97,7 +83,6 @@ startElasticSearch()
 nlp = spacy.load("en_core_web_sm")
 token_count = {}
 for web in webs:
-    # paper = newspaper.build(web, language='en', memoize_articles = False)
     paper = newspaper.Source(web, language='en', memoize_articles = False)
     paper.categories = [Category(web)]
     paper.download_categories()
