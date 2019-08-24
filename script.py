@@ -3,6 +3,7 @@ import re
 from datetime import datetime
 from elasticsearch import Elasticsearch
 import spacy
+import pathlib
 
 webs = [
     # 'https://www.abqjournal.com/category/news-more',
@@ -27,8 +28,72 @@ webs = [
 ]
 
 es = Elasticsearch()
+nlp = spacy.load("en_core_web_sm")
 
-def startElasticSearch():
+
+def parseArticle(article):
+    article.download()
+    article.parse()
+    doc = nlp(article.text)
+    tokens = list(map(lambda y: y.lemma_, filter(lambda x: x.pos_ == "NOUN", doc)))
+    return (article, tokens)
+
+def saveToElasticSearch(article, brand, tokens, first_phase):
+    es_body = {
+        "newspaper_name": brand,
+        "url": article.url,
+        "publication_date": article.publish_date,
+        "collection_date": datetime.now(),
+        "headline": article.title,
+        "body": article.text,
+        "tokens": tokens,
+        "found_first_phase": first_phase
+    }
+    es.index(index='articles', body={es_body})
+
+def processArticleFirstPhase(article, token_count, brand):
+    (article, tokens) = parseArticle(article)
+    for token in tokens:
+        if (token in token_count):
+            token_count[token] = token_count[token] + 1
+        else:
+            token_count[token] = 1
+    saveToElasticSearch(article, brand, tokens, True)
+
+def processArticleSecondPhase(article, target_tokens, brand):
+    (article, tokens) = parseArticle(article)
+    # rudimentary way to check if article has any of the target tokens
+    valid_article = False
+    for token in tokens:
+        if token in target_tokens:
+            valid_article = True
+            break
+    if (valid_article == False):
+        return
+    saveToElasticSearch(article, brand, tokens, False)
+    
+def buildWeb(web):
+    class Category(object):
+        #Hack - reverse engineered newspaper3k to introduce custom sources
+        def __init__(self, url):
+            self.url = url
+            self.html = None
+            self.doc = None
+    # paper = newspaper.Source(web, language='en')
+    paper = newspaper.Source(web, language='en', memoize_articles = False)
+    paper.categories = [Category(web)]
+    paper.download_categories()
+    paper.parse_categories()
+    paper.generate_articles()
+    print ('Newspaper ' + paper.brand + ' built. Size: ' + str(paper.size()))
+    if (paper.size() < 10):
+        print('Error, size too low')
+        return
+    return paper
+
+def firstPhase():
+    # create elastic search instance
+    # def createElasticSearch():
     body_settings = {
         "settings": {
             "number_of_shards": 1,
@@ -44,56 +109,51 @@ def startElasticSearch():
                     "collection_date": { "type": "date" },
                     "headline": { "type": "text" },
                     "body": { "type": "text" },
-                    "tokens": { "type": "keyword" }
+                    "tokens": { "type": "keyword" },
+                    "found_first_phase": {"type": "boolean"}
                 }
             }
         }
     }
     es.indices.create(index="articles", ignore=400, body=body_settings)
+    token_count = {}
+    for web in webs:
+        paper = buildWeb(web)
+        for i in range (0, 2):
+            processArticleFirstPhase(paper.articles[i], token_count, paper.brand)
+        # for article in paper.articles:
+        #     processArticleFirstPhase(article)
+    sorted_word_dict = sorted(token_count, key=token_count.get, reverse=True)
+    print ('Writing found tokens to file target_tokens.txt...')
+    with open ("target_tokens.txt", "rw") as file:
+        i = 0
+        for word in sorted_word_dict:
+            i += i
+            file.writelines(word)
+            if i > 100:
+                break
+    print ('Done.')
 
-def processArticle(article):
-    article.download()
-    article.parse()
-    doc = nlp(article.text)
-    tokens = list(map(lambda y: y.lemma_, filter(lambda x: x.pos_ == "NOUN", doc)))
-    for token in tokens:
-        if (token in token_count):
-            token_count[token] = token_count[token] + 1
-        else:
-            token_count[token] = 0
-    es_body = {
-        "newspaper_name": paper.brand,
-        "url": article.url,
-        "publication_date": article.publish_date,
-        "collection_date": datetime.now(),
-        "headline": article.title,
-        "body": article.text,
-        "tokens": tokens
-    }
-    es.index(index='articles', body={es_body})
+def secondPhase():
+    print ('Loading tokens from target_tokens.txt...')
+    target_tokens = []
+    with open ("target_tokens.txt", "r") as file:
+        i = 0
+        for word in file:
+            i += i
+            target_tokens.append(word)
+    print ('Read ' + i + ' lines.')
+    for web in webs:
+        paper = buildWeb(web)
+        for i in range (0, 2):
+            processArticleSecondPhase(paper.articles[i], target_tokens, paper.brand)
+        # for article in paper.articles:
+        #     processArticleFirstPhase(article)
+    print ('Done.')
 
-
-class Category(object):
-    def __init__(self, url):
-        self.url = url
-        self.html = None
-        self.doc = None
-
-startElasticSearch()
-nlp = spacy.load("en_core_web_sm")
-token_count = {}
-for web in webs:
-    paper = newspaper.Source(web, language='en', memoize_articles = False)
-    paper.categories = [Category(web)]
-    paper.download_categories()
-    paper.parse_categories()
-    paper.generate_articles()
-    brand = paper.brand
-    size = str(paper.size())
-    print (paper.size())
-    print ('Newspaper ' + brand + ' built. Size: ' + size)
-    if (paper.size() < 10):
-        print('Size too low. Exiting...')
-        break
-    for i in range (0, 2):
-        processArticle(paper.articles[i])
+# main process
+target_token_file = pathlib.Path("target_tokens.txt")
+if (target_token_file.exists()):
+    secondPhase()
+else:
+    firstPhase()
