@@ -1,26 +1,27 @@
 import newspaper
 import re
+import sys
 from datetime import datetime
 from elasticsearch import Elasticsearch
 import spacy
 import pathlib
 
 webs = [
-    # 'https://www.abqjournal.com/category/news-more',
-    # 'https://www.bostonglobe.com/world/',
-    # 'https://www.bostonherald.com/news/world-news/',
-    # 'https://www.charlotteobserver.com/news/nation-world/world/',
-    # 'https://www.cleveland.com/world/',
-    # 'https://www.star-telegram.com/news/nation-world/world',
-    # 'https://www.kansascity.com/news/nation-world/world',
-    # 'https://www.miamiherald.com/news/nation-world/world/',
-    # 'http://www.startribune.com/world/',
-    # 'https://www.nytimes.com/section/world',
-    # 'https://oklahoman.com/news/us-world',
-    # 'https://www.post-gazette.com/news/world', #parece que pilla pocas noticias...
-    # 'https://www.sacbee.com/news/nation-world/world/',
-    # 'https://www.wsj.com/news/world',
-    # 'https://www.washingtontimes.com/news/world/',
+    'https://www.abqjournal.com/category/news-more',
+    'https://www.bostonglobe.com/world/',
+    'https://www.bostonherald.com/news/world-news/',
+    'https://www.charlotteobserver.com/news/nation-world/world/',
+    'https://www.cleveland.com/world/',
+    'https://www.star-telegram.com/news/nation-world/world',
+    'https://www.kansascity.com/news/nation-world/world',
+    'https://www.miamiherald.com/news/nation-world/world/',
+    'http://www.startribune.com/world/',
+    'https://www.nytimes.com/section/world',
+    'https://oklahoman.com/news/us-world',
+    'https://www.post-gazette.com/news/world', #parece que pilla pocas noticias...
+    'https://www.sacbee.com/news/nation-world/world/',
+    'https://www.wsj.com/news/world',
+    'https://www.washingtontimes.com/news/world/',
 ]
 
 failing_webs = [
@@ -30,9 +31,12 @@ failing_webs = [
     # 'https://www.washingtonpost.com/world/?noredirect=on', FALLA porque tiene un paywall al principio (evitable)
 ]
 
+# start ElasticSearch and load SpaCy NLP module
 es = Elasticsearch()
 nlp = spacy.load("en_core_web_sm")
-
+val = 100
+if (sys.argv[1]):
+    val = int(sys.argv[1])
 
 def parseArticle(article):
     article.download()
@@ -50,7 +54,6 @@ def saveToElasticSearch(article, brand, tokens):
         "headline": article.title,
         "body": article.text,
         "tokens": tokens,
-        # "found_first_phase": first_phase
     }
     es.index(index='articles', body=es_body)
 
@@ -61,7 +64,6 @@ def processArticleFirstPhase(article, token_count, brand):
             token_count[token] = token_count[token] + 1
         else:
             token_count[token] = 1
-    # saveToElasticSearch(article, brand, tokens, True)
 
 def processArticleSecondPhase(article, target_tokens, brand):
     (article, tokens) = parseArticle(article)
@@ -73,7 +75,6 @@ def processArticleSecondPhase(article, target_tokens, brand):
             break
     if (valid_article == False):
         return
-    # saveToElasticSearch(article, brand, tokens, False)
     saveToElasticSearch(article, brand, tokens)
     
 def buildWeb(web):
@@ -83,8 +84,7 @@ def buildWeb(web):
             self.url = url
             self.html = None
             self.doc = None
-    # paper = newspaper.Source(web, language='en', fetch_images = False)
-    paper = newspaper.Source(web, language='en', memoize_articles = False, fetch_images = False)
+    paper = newspaper.Source(web, language='en', fetch_images = False)
     paper.categories = [Category(web)]
     paper.download_categories()
     paper.parse_categories()
@@ -97,7 +97,6 @@ def buildWeb(web):
 
 def firstPhase():
     # create elastic search instance
-    # def createElasticSearch():
     body_settings = {
         "settings": {
             "number_of_shards": 1,
@@ -114,7 +113,6 @@ def firstPhase():
                     "headline": { "type": "text" },
                     "body": { "type": "text" },
                     "tokens": { "type": "keyword" }
-                    # "found_first_phase": {"type": "boolean"}
                 }
             }
         }
@@ -123,10 +121,8 @@ def firstPhase():
     token_count = {}
     for web in webs:
         paper = buildWeb(web)
-        for i in range (0, 2):
-            processArticleFirstPhase(paper.articles[i], token_count, paper.brand)
-        # for article in paper.articles:
-        #     processArticleFirstPhase(article)
+        for article in paper.articles:
+            processArticleFirstPhase(article)
     sorted_word_dict = sorted(token_count, key=token_count.get, reverse=True)
     print ('Writing found tokens to file target_tokens.txt...')
     with open ("target_tokens.txt", "w") as file:
@@ -134,7 +130,7 @@ def firstPhase():
         for word in sorted_word_dict:
             i += i
             file.write(word + '\n')
-            if i > 100:
+            if i > val:
                 break
     print ('Done.')
 
@@ -146,13 +142,13 @@ def secondPhase():
         for word in file:
             i += 1
             target_tokens.append(word.replace('\n', ''))
+            if (i > val):
+                break
     print ('Read ' + str(i) + ' lines.')
     for web in webs:
         paper = buildWeb(web)
-        for i in range (0, 2):
-            processArticleSecondPhase(paper.articles[i], target_tokens, paper.brand)
-        # for article in paper.articles:
-        #     processArticleFirstPhase(article)
+        for article in paper.articles:
+            processArticleFirstPhase(article)
     print ('Done.')
 
 # main process
