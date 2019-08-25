@@ -148,7 +148,7 @@ def secondPhase():
     for web in webs:
         paper = buildWeb(web)
         for article in paper.articles:
-            processArticleFirstPhase(article)
+            processArticleSecondPhase(article)
     print ('Done.')
 
 # main process
