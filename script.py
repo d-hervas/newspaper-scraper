@@ -12,19 +12,22 @@ webs = [
     # 'https://www.charlotteobserver.com/news/nation-world/world/',
     # 'https://www.cleveland.com/world/',
     # 'https://www.star-telegram.com/news/nation-world/world',
-    # 'https://www.chron.com/news/nation-world/world/',
     # 'https://www.kansascity.com/news/nation-world/world',
     # 'https://www.miamiherald.com/news/nation-world/world/',
     # 'http://www.startribune.com/world/',
     # 'https://www.nytimes.com/section/world',
     # 'https://oklahoman.com/news/us-world',
-    # 'https://www.post-gazette.com/news/world',
+    # 'https://www.post-gazette.com/news/world', #parece que pilla pocas noticias...
     # 'https://www.sacbee.com/news/nation-world/world/',
-    # 'https://www.mysanantonio.com/news/us-world/world/',
-    # 'https://www.sfgate.com/world/',
     # 'https://www.wsj.com/news/world',
-    # 'https://www.washingtonpost.com/world/',
     # 'https://www.washingtontimes.com/news/world/',
+]
+
+failing_webs = [
+    # 'https://www.mysanantonio.com/news/us-world/world/', FALLA porque pide cookies al entrar
+    # 'https://www.sfgate.com/world/', FALLA porque te pide cookies al entrar (mismo sistema que mysanantonio)
+    # 'https://www.chron.com/news/nation-world/world/', FALLA porque te pide cookies al entrar (mismo sistema que mysanantonio) 
+    # 'https://www.washingtonpost.com/world/?noredirect=on', FALLA porque tiene un paywall al principio (evitable)
 ]
 
 es = Elasticsearch()
@@ -38,7 +41,7 @@ def parseArticle(article):
     tokens = list(map(lambda y: y.lemma_, filter(lambda x: x.pos_ == "NOUN", doc)))
     return (article, tokens)
 
-def saveToElasticSearch(article, brand, tokens, first_phase):
+def saveToElasticSearch(article, brand, tokens):
     es_body = {
         "newspaper_name": brand,
         "url": article.url,
@@ -47,9 +50,9 @@ def saveToElasticSearch(article, brand, tokens, first_phase):
         "headline": article.title,
         "body": article.text,
         "tokens": tokens,
-        "found_first_phase": first_phase
+        # "found_first_phase": first_phase
     }
-    es.index(index='articles', body={es_body})
+    es.index(index='articles', body=es_body)
 
 def processArticleFirstPhase(article, token_count, brand):
     (article, tokens) = parseArticle(article)
@@ -58,7 +61,7 @@ def processArticleFirstPhase(article, token_count, brand):
             token_count[token] = token_count[token] + 1
         else:
             token_count[token] = 1
-    saveToElasticSearch(article, brand, tokens, True)
+    # saveToElasticSearch(article, brand, tokens, True)
 
 def processArticleSecondPhase(article, target_tokens, brand):
     (article, tokens) = parseArticle(article)
@@ -70,7 +73,8 @@ def processArticleSecondPhase(article, target_tokens, brand):
             break
     if (valid_article == False):
         return
-    saveToElasticSearch(article, brand, tokens, False)
+    # saveToElasticSearch(article, brand, tokens, False)
+    saveToElasticSearch(article, brand, tokens)
     
 def buildWeb(web):
     class Category(object):
@@ -79,8 +83,8 @@ def buildWeb(web):
             self.url = url
             self.html = None
             self.doc = None
-    # paper = newspaper.Source(web, language='en')
-    paper = newspaper.Source(web, language='en', memoize_articles = False)
+    # paper = newspaper.Source(web, language='en', fetch_images = False)
+    paper = newspaper.Source(web, language='en', memoize_articles = False, fetch_images = False)
     paper.categories = [Category(web)]
     paper.download_categories()
     paper.parse_categories()
@@ -109,8 +113,8 @@ def firstPhase():
                     "collection_date": { "type": "date" },
                     "headline": { "type": "text" },
                     "body": { "type": "text" },
-                    "tokens": { "type": "keyword" },
-                    "found_first_phase": {"type": "boolean"}
+                    "tokens": { "type": "keyword" }
+                    # "found_first_phase": {"type": "boolean"}
                 }
             }
         }
@@ -125,11 +129,11 @@ def firstPhase():
         #     processArticleFirstPhase(article)
     sorted_word_dict = sorted(token_count, key=token_count.get, reverse=True)
     print ('Writing found tokens to file target_tokens.txt...')
-    with open ("target_tokens.txt", "rw") as file:
+    with open ("target_tokens.txt", "w") as file:
         i = 0
         for word in sorted_word_dict:
             i += i
-            file.writelines(word)
+            file.write(word + '\n')
             if i > 100:
                 break
     print ('Done.')
@@ -140,9 +144,9 @@ def secondPhase():
     with open ("target_tokens.txt", "r") as file:
         i = 0
         for word in file:
-            i += i
-            target_tokens.append(word)
-    print ('Read ' + i + ' lines.')
+            i += 1
+            target_tokens.append(word.replace('\n', ''))
+    print ('Read ' + str(i) + ' lines.')
     for web in webs:
         paper = buildWeb(web)
         for i in range (0, 2):
