@@ -77,7 +77,7 @@ def processArticleSecondPhase(article, target_tokens, brand):
         return
     saveToElasticSearch(article, brand, tokens)
     
-def buildWeb(web):
+def buildWeb(web, first_phase):
     class Category(object):
         #Hack - reverse engineered newspaper3k to introduce custom sources
         def __init__(self, url):
@@ -90,7 +90,7 @@ def buildWeb(web):
     paper.parse_categories()
     paper.generate_articles()
     print ('Newspaper ' + paper.brand + ' built. Size: ' + str(paper.size()))
-    if (paper.size() < 10):
+    if (first_phase and paper.size() < 10):
         print('Error, size too low')
         return
     return paper
@@ -120,7 +120,7 @@ def firstPhase():
     es.indices.create(index="articles", ignore=400, body=body_settings)
     token_count = {}
     for web in webs:
-        paper = buildWeb(web)
+        paper = buildWeb(web, True)
         for article in paper.articles:
             processArticleFirstPhase(article)
     sorted_word_dict = sorted(token_count, key=token_count.get, reverse=True)
@@ -146,7 +146,7 @@ def secondPhase():
                 break
     print ('Read ' + str(i) + ' lines.')
     for web in webs:
-        paper = buildWeb(web)
+        paper = buildWeb(web, False)
         for article in paper.articles:
             processArticleSecondPhase(article)
     print ('Done.')
