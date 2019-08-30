@@ -35,7 +35,7 @@ failing_webs = [
 es = Elasticsearch()
 nlp = spacy.load("en_core_web_sm")
 val = 100
-if (sys.argv[1]):
+if (len(sys.argv) > 1):
     val = int(sys.argv[1])
 
 def parseArticle(article):
@@ -122,7 +122,7 @@ def firstPhase():
     for web in webs:
         paper = buildWeb(web, True)
         for article in paper.articles:
-            processArticleFirstPhase(article)
+            processArticleFirstPhase(article, token_count, paper.brand)
     sorted_word_dict = sorted(token_count, key=token_count.get, reverse=True)
     print ('Writing found tokens to file target_tokens.txt...')
     with open ("target_tokens.txt", "w") as file:
@@ -148,7 +148,7 @@ def secondPhase():
     for web in webs:
         paper = buildWeb(web, False)
         for article in paper.articles:
-            processArticleSecondPhase(article)
+            processArticleSecondPhase(article, target_tokens, paper.brand)
     print ('Done.')
 
 # main process
