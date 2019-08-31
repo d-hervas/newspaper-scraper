@@ -39,11 +39,15 @@ if (len(sys.argv) > 1):
     val = int(sys.argv[1])
 
 def parseArticle(article):
-    article.download()
-    article.parse()
-    doc = nlp(article.text)
-    tokens = list(map(lambda y: y.lemma_, filter(lambda x: x.pos_ == "NOUN", doc)))
-    return (article, tokens)
+    try:
+        article.download()
+        article.parse()
+        doc = nlp(article.text)
+        tokens = list(map(lambda y: y.lemma_, filter(lambda x: x.pos_ == "NOUN", doc)))
+        return (article, tokens)
+    except:
+        print('Something went wrong parsing the article. Continuing...')
+        return (article, [])
 
 def saveToElasticSearch(article, brand, tokens):
     es_body = {
