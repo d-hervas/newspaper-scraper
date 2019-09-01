@@ -137,10 +137,11 @@ def firstPhase():
     with open ("target_tokens.txt", "w") as file:
         i = 0
         for word in sorted_word_dict:
-            i += i
-            file.write(word + ' ' + str(sorted_word_dict[word]) + '\n')
-            if i > val:
-                break
+            if (word.len > 1):
+                i += i
+                file.write(word + ' ' + str(sorted_word_dict[word]) + '\n')
+                if i > val:
+                    break
     print ('Done.')
 
 def secondPhase():
