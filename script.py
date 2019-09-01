@@ -39,9 +39,14 @@ if (len(sys.argv) > 1):
     val = int(sys.argv[1])
 
 def parseArticle(article):
+    error_strings = ["There may be an issue with the delivery of your newspaper."]
     try:
         article.download()
         article.parse()
+        for error in error_strings:
+            if (error in article.body):
+                print('Found errored article. Continuing...')
+                return (article, [])
         doc = nlp(article.text)
         tokens = list(map(lambda y: y.lemma_, filter(lambda x: x.pos_ == "NOUN", doc)))
         return (article, tokens)
@@ -133,7 +138,7 @@ def firstPhase():
         i = 0
         for word in sorted_word_dict:
             i += i
-            file.write(word + '\n')
+            file.write(word + ' ' + str(sorted_word_dict[word]) + '\n')
             if i > val:
                 break
     print ('Done.')
@@ -145,7 +150,7 @@ def secondPhase():
         i = 0
         for word in file:
             i += 1
-            target_tokens.append(word.replace('\n', ''))
+            target_tokens.append(word.split()[0])
             if (i > val):
                 break
     print ('Read ' + str(i) + ' lines.')
