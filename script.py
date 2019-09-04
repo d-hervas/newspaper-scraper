@@ -5,6 +5,8 @@ from datetime import datetime
 from elasticsearch import Elasticsearch
 import spacy
 import pathlib
+import json
+import os
 
 webs = [
     'https://www.abqjournal.com/category/news-more',
@@ -44,27 +46,17 @@ def parseArticle(article):
         article.download()
         article.parse()
         for error in error_strings:
-            if (error in article.body):
+            if (error in article.text):
                 print('Found errored article. Continuing...')
                 return (article, [])
         doc = nlp(article.text)
         tokens = list(map(lambda y: y.lemma_, filter(lambda x: x.pos_ == "NOUN", doc)))
         return (article, tokens)
-    except:
-        print('Something went wrong parsing the article. Continuing...')
+    except newspaper.ArticleException as exc: 
+        print('Something went wrong parsing the article.')
+        print('Exception: ')
+        print(exc)
         return (article, [])
-
-def saveToElasticSearch(article, brand, tokens):
-    es_body = {
-        "newspaper_name": brand,
-        "url": article.url,
-        "publication_date": article.publish_date,
-        "collection_date": datetime.now(),
-        "headline": article.title,
-        "body": article.text,
-        "tokens": tokens,
-    }
-    es.index(index='articles', body=es_body)
 
 def processArticleFirstPhase(article, token_count, brand):
     (article, tokens) = parseArticle(article)
@@ -74,7 +66,7 @@ def processArticleFirstPhase(article, token_count, brand):
         else:
             token_count[token] = 1
 
-def processArticleSecondPhase(article, target_tokens, brand):
+def processArticleSecondPhase(article, target_tokens, brand, saved_articles):
     (article, tokens) = parseArticle(article)
     # rudimentary way to check if article has any of the target tokens
     valid_article = False
@@ -84,7 +76,28 @@ def processArticleSecondPhase(article, target_tokens, brand):
             break
     if (valid_article == False):
         return
-    saveToElasticSearch(article, brand, tokens)
+    es_body = {
+        "newspaper_name": brand,
+        "url": article.url,
+        "publication_date": article.publish_date,
+        "collection_date": datetime.now(),
+        "headline": article.title,
+        "body": article.text,
+        "tokens": tokens,
+    }
+    formatted_publish_date = article.publish_date.isoformat() if article.publish_date else 'Unknown'
+    es_JSON_body = {
+        #I'm going straight to hell for this
+        "newspaper_name": brand,
+        "url": article.url,
+        "publication_date": formatted_publish_date,
+        "collection_date": datetime.now().isoformat(),
+        "headline": article.title,
+        "body": article.text,
+        "tokens": tokens,
+    }
+    saved_articles.append(es_JSON_body)
+    es.index(index='articles', body=es_body) #save to elasticSearch
     
 def buildWeb(web, first_phase):
     class Category(object):
@@ -137,9 +150,9 @@ def firstPhase():
     with open ("target_tokens.txt", "w") as file:
         i = 0
         for word in sorted_word_dict:
-            if (word.len > 1):
+            if (len(word) > 1):
                 i += i
-                file.write(word + ' ' + str(sorted_word_dict[word]) + '\n')
+                file.write(word + ' ' + str(token_count[word]) + '\n')
                 if i > val:
                     break
     print ('Done.')
@@ -155,10 +168,15 @@ def secondPhase():
             if (i > val):
                 break
     print ('Read ' + str(i) + ' lines.')
+    date = datetime.now().strftime("%m-%d")
+    os.mkdir('./'+date)
     for web in webs:
         paper = buildWeb(web, False)
+        saved_articles = []
         for article in paper.articles:
-            processArticleSecondPhase(article, target_tokens, paper.brand)
+            processArticleSecondPhase(article, target_tokens, paper.brand, saved_articles)
+            with open('./'+date+'/'+paper.brand+".json", "w") as wrt_article:
+                json.dump(saved_articles, wrt_article)
     print ('Done.')
 
 # main process
