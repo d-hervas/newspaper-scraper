@@ -7,6 +7,12 @@ import spacy
 import pathlib
 import json
 import os
+import feedparser as fp
+import urllib.request
+from newspaper import Article
+
+rss=[
+]
 
 webs = [
     'https://www.abqjournal.com/category/news-more',
@@ -24,13 +30,6 @@ webs = [
     'https://www.sacbee.com/news/nation-world/world/',
     'https://www.wsj.com/news/world',
     'https://www.washingtontimes.com/news/world/',
-]
-
-failing_webs = [
-    # 'https://www.mysanantonio.com/news/us-world/world/', FALLA porque pide cookies al entrar
-    # 'https://www.sfgate.com/world/', FALLA porque te pide cookies al entrar (mismo sistema que mysanantonio)
-    # 'https://www.chron.com/news/nation-world/world/', FALLA porque te pide cookies al entrar (mismo sistema que mysanantonio) 
-    # 'https://www.washingtonpost.com/world/?noredirect=on', FALLA porque tiene un paywall al principio (evitable)
 ]
 
 # start ElasticSearch and load SpaCy NLP module
@@ -117,7 +116,7 @@ def buildWeb(web, first_phase):
         return
     return paper
 
-def firstPhase():
+def firstPhase(ex_count):
     # create elastic search instance
     body_settings = {
         "settings": {
@@ -141,20 +140,29 @@ def firstPhase():
     }
     es.indices.create(index="articles", ignore=400, body=body_settings)
     token_count = {}
+    # crawl webs
     for web in webs:
         paper = buildWeb(web, True)
         for article in paper.articles:
             processArticleFirstPhase(article, token_count, paper.brand)
+    # crawl RSS feeds
+    for url_feed in rss:
+        feed = urllib.request.urlretrieve(url_feed)
+        parsed_feed = fp.parse(feed) 
+        for entry in parsed_feed.entries:
+            processArticleFirstPhase(Article(entry.link), token_count, 'todo')
+
     sorted_word_dict = sorted(token_count, key=token_count.get, reverse=True)
-    print ('Writing found tokens to file target_tokens.txt...')
-    with open ("target_tokens.txt", "w") as file:
-        i = 0
-        for word in sorted_word_dict:
-            if (len(word) > 1):
-                i += i
-                file.write(word + ' ' + str(token_count[word]) + '\n')
-                if i > val:
-                    break
+    if (ex_count == 7):
+        print ('Writing found tokens to file target_tokens.txt...')
+        with open ("target_tokens.txt", "w") as file:
+            i = 0
+            for word in sorted_word_dict:
+                if (len(word) > 1):
+                    i += i
+                    file.write(word + ' ' + str(token_count[word]) + '\n')
+                    if i > val:
+                        break
     print ('Done.')
 
 def secondPhase():
@@ -181,7 +189,14 @@ def secondPhase():
 
 # main process
 target_token_file = pathlib.Path("target_tokens.txt")
+if (not (pathlib.Path("./count.txt").exists())):
+    with open ("count.txt", "w") as file:
+        file.write(0)
 if (target_token_file.exists()):
     secondPhase()
 else:
-    firstPhase()
+    ex_count = 0
+    with open ("count.txt") as f:
+        ex_count = int(f.read()) + 1
+        f.write(str(ex_count))
+    firstPhase(ex_count)

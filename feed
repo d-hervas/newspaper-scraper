@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+
+<channel>
+	<title>World | Boston.com</title>
+	<atom:link href="https://www.boston.com/tag/world-news/feed" rel="self" type="application/rss+xml" />
+	<link>https://www.boston.com</link>
+	<description>Boston.com</description>
+	<lastBuildDate>Sat, 07 Sep 2019 17:37:24 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	
+
+<image>
+	<url>https://www.boston.com/wp-content/uploads/2016/08/cropped-Bug-Logo@2x-32x32.png</url>
+	<title>World | Boston.com</title>
+	<link>https://www.boston.com</link>
+	<width>32</width>
+	<height>32</height>
+</image> 
+	<item>
+		<title>Jaylen Brown, Giannis Antetokounmpo exchange words after Team USA-Greece game</title>
+		<link>https://www.boston.com/sports/boston-celtics/2019/09/07/jaylen-brown-giannis-antetokounmpo-exchange-words</link>
+				<pubDate>Sat, 07 Sep 2019 17:37:24 +0000</pubDate>
+		<dc:creator><![CDATA[Trevor Hass]]></dc:creator>
+				<category><![CDATA[Sports]]></category>
+		<category><![CDATA[Celtics]]></category>
+		<category><![CDATA[NBA]]></category>
+		<category><![CDATA[World]]></category>
+
+		<guid isPermaLink="false">https://www.boston.com/?p=14930564</guid>
+				<description><![CDATA["Yeah, I said something to Giannis. Well, Giannis said something to me. But we've got bigger fish to fry. So we move on."]]></description>
+								<enclosure url="https://www.boston.com/wp-content/uploads/2019/09/prd-meth01-idx-bg.boston-3-4-850x638.jpg" type="image/jpeg" />	</item>
+		<item>
+		<title>This 74-year-old woman just gave birth to twins</title>
+		<link>https://www.boston.com/news/health/2019/09/06/this-74-year-old-woman-just-gave-birth-to-twins</link>
+				<pubDate>Fri, 06 Sep 2019 21:15:52 +0000</pubDate>
+		<dc:creator><![CDATA[John Waller]]></dc:creator>
+				<category><![CDATA[News]]></category>
+		<category><![CDATA[Health]]></category>
+		<category><![CDATA[Trending]]></category>
+		<category><![CDATA[Washington Post]]></category>
+		<category><![CDATA[World]]></category>
+
+		<guid isPermaLink="false">https://www.boston.com/?p=14920768</guid>
+				<description><![CDATA[A 74-year-old woman has given birth to twin girls in the southern Indian state of Andhra Pradesh, reviving several controversies around geriatric pregnancies. The doctor who delivered the babies, Sankkayala Uma Shankar, told The Washington Post on Friday that the mother, Mangayamma Yaramati, provided a birth certificate showing is 74, though some news outlets have [&#8230;]]]></description>
+								<enclosure url="https://www.boston.com/wp-content/uploads/2019/09/EDzk-sgWwAE640q-850x638.jpeg" type="image/jpeg" />	</item>
+		<item>
+		<title>14 photos showing the devastation in the Bahamas from Hurricane Dorian</title>
+		<link>https://www.boston.com/news/weather/2019/09/04/hurricane-dorian-bahamas-photos</link>
+				<pubDate>Wed, 04 Sep 2019 17:30:48 +0000</pubDate>
+		<dc:creator><![CDATA[Arianna MacNeill]]></dc:creator>
+				<category><![CDATA[News]]></category>
+		<category><![CDATA[Hurricanes]]></category>
+		<category><![CDATA[Storms]]></category>
+		<category><![CDATA[Weather]]></category>
+		<category><![CDATA[World]]></category>
+
+		<guid isPermaLink="false">https://www.boston.com/?p=14869968</guid>
+				<description><![CDATA[Hurricane Dorian left a trail of destruction in the Bahamas early this week, with the death toll at seven Wednesday expected to rise. “We are in the midst of one of the greatest national crises in our country’s history,” Prime Minister Hubert Minnis said, according to the Associated Press. Here are 14 photos showing the [&#8230;]]]></description>
+								<enclosure url="https://www.boston.com/wp-content/uploads/2019/09/AFP_1K06TT-850x638.jpg" type="image/jpeg" />	</item>
+		<item>
+		<title>Pope gets stuck in Vatican elevator, firefighters rescue him</title>
+		<link>https://www.boston.com/news/world-news/2019/09/01/pope-gets-stuck-in-vatican-elevator-firefighters-rescue-him</link>
+				<pubDate>Sun, 01 Sep 2019 11:24:42 +0000</pubDate>
+		<dc:creator><![CDATA[Associated Press]]></dc:creator>
+				<category><![CDATA[News]]></category>
+		<category><![CDATA[Politics]]></category>
+		<category><![CDATA[World]]></category>
+
+		<guid isPermaLink="false">https://www.boston.com/?p=14826529</guid>
+				<description><![CDATA[Pope Francis apologized to faithful in St. Peter's Square Sunday.]]></description>
+								<enclosure url="https://www.boston.com/wp-content/uploads/2019/09/Vatican_Pope_06317-850x638.jpg" type="image/jpeg" />	</item>
+		<item>
+		<title>USA opens basketball World Cup quest, undaunted by doubters</title>
+		<link>https://www.boston.com/sports/nba/2019/08/31/usa-opens-basketball-world-cup-quest-undaunted-by-doubters</link>
+				<pubDate>Sat, 31 Aug 2019 13:23:01 +0000</pubDate>
+		<dc:creator><![CDATA[Associated Press]]></dc:creator>
+				<category><![CDATA[Sports]]></category>
+		<category><![CDATA[Basketball]]></category>
+		<category><![CDATA[NBA]]></category>
+		<category><![CDATA[World]]></category>
+
+		<guid isPermaLink="false">https://www.boston.com/?p=14816060</guid>
+				<description><![CDATA["I think a lot of us have grown up with doubt coming into our careers."]]></description>
+								<enclosure url="https://www.boston.com/wp-content/uploads/2019/08/Australia_US_Basketball_58227-850x638.jpg" type="image/jpeg" />	</item>
+		<item>
+		<title>France’s Macron accuses Brazil’s Bolsonaro of ‘incredibly disrespectful’ comments about his wife</title>
+		<link>https://www.boston.com/news/world-news/2019/08/26/macron-bolsonaro-wives</link>
+				<pubDate>Mon, 26 Aug 2019 16:37:15 +0000</pubDate>
+		<dc:creator><![CDATA[John Waller]]></dc:creator>
+				<category><![CDATA[News]]></category>
+		<category><![CDATA[Politics]]></category>
+		<category><![CDATA[Trending]]></category>
+		<category><![CDATA[Washington Post]]></category>
+		<category><![CDATA[World]]></category>
+
+		<guid isPermaLink="false">https://www.boston.com/?p=14737003</guid>
+				<description><![CDATA[French President Emmanuel Macron issued a fiery response to Brazil&#8217;s President Jair Bolsonaro for social media comments that appeared to criticize the appearance of French first lady Brigitte Macron. &#8220;For him to have made incredibly disrespectful comments about my spouse &#8211; what can I say to you?&#8221; Macron told a news conference on Monday when [&#8230;]]]></description>
+								<enclosure url="https://www.boston.com/wp-content/uploads/2019/08/AFP_1JQ70U-1-850x638.jpg" type="image/jpeg" />	</item>
+		<item>
+		<title>How China's tariffs are affecting U.S. lobster exports</title>
+		<link>https://www.boston.com/news/national-news/2019/08/26/how-chinas-tariffs-are-affecting-u-s-lobster-exports</link>
+				<pubDate>Mon, 26 Aug 2019 15:54:07 +0000</pubDate>
+		<dc:creator><![CDATA[Associated Press]]></dc:creator>
+				<category><![CDATA[News]]></category>
+		<category><![CDATA[Business]]></category>
+		<category><![CDATA[Local]]></category>
+		<category><![CDATA[Maine]]></category>
+		<category><![CDATA[National]]></category>
+		<category><![CDATA[Politics]]></category>
+		<category><![CDATA[World]]></category>
+
+		<guid isPermaLink="false">https://www.boston.com/?p=14725852</guid>
+				<description><![CDATA["There is no market that's going to replace China."]]></description>
+								<enclosure url="https://www.boston.com/wp-content/uploads/2019/08/Lobster_Exports_22033-850x638.jpg" type="image/jpeg" />	</item>
+		<item>
+		<title>Extinction bites: countries agree to protect sharks and rays</title>
+		<link>https://www.boston.com/news/world-news/2019/08/25/extinction-bites-countries-agree-to-protect-sharks-and-rays</link>
+				<pubDate>Sun, 25 Aug 2019 11:29:55 +0000</pubDate>
+		<dc:creator><![CDATA[Associated Press]]></dc:creator>
+				<category><![CDATA[News]]></category>
+		<category><![CDATA[Animals]]></category>
+		<category><![CDATA[Business]]></category>
+		<category><![CDATA[Environment]]></category>
+		<category><![CDATA[Science]]></category>
+		<category><![CDATA[Sharks]]></category>
+		<category><![CDATA[World]]></category>
+
+		<guid isPermaLink="false">https://www.boston.com/?p=14724308</guid>
+				<description><![CDATA[Countries have agreed to protect more than a dozen shark species at risk of extinction.]]></description>
+								<enclosure url="https://www.boston.com/wp-content/uploads/2019/08/Saving_Sharks_84719-850x638.jpg" type="image/jpeg" />	</item>
+		<item>
+		<title>Two former MLB players implicated in Dominican Republic drug trafficking sweep</title>
+		<link>https://www.boston.com/news/world-news/2019/08/20/two-former-mlb-players-implicated-in-dominican-republic-drug-trafficking-sweep</link>
+				<pubDate>Tue, 20 Aug 2019 23:35:35 +0000</pubDate>
+		<dc:creator><![CDATA[Washington Post]]></dc:creator>
+				<category><![CDATA[News]]></category>
+		<category><![CDATA[MLB]]></category>
+		<category><![CDATA[Sports]]></category>
+		<category><![CDATA[World]]></category>
+
+		<guid isPermaLink="false">https://www.boston.com/?p=14657277</guid>
+				<description><![CDATA[Washington Post News Service Dominican authorities accused two former Major League Baseball players of complicity in drug trafficking on Tuesday following a government operation targeting a major drug trafficking and money laundering network. Officials arrested former MLB pitcher Octavio Dotel during coordinated raids on suspected members of the crime ring led by César Emilio Peralta, [&#8230;]]]></description>
+								<enclosure url="https://www.boston.com/wp-content/uploads/2019/08/download-31-850x638.jpg" type="image/jpeg" />	</item>
+		<item>
+		<title>Accusations against Plácido Domingo divide the opera world</title>
+		<link>https://www.boston.com/culture/music/2019/08/18/accusations-against-placido-domingo-divide-the-opera-world</link>
+				<pubDate>Sun, 18 Aug 2019 23:34:37 +0000</pubDate>
+		<dc:creator><![CDATA[New York Times Service]]></dc:creator>
+				<category><![CDATA[Culture]]></category>
+		<category><![CDATA[Celebs]]></category>
+		<category><![CDATA[Music]]></category>
+		<category><![CDATA[National]]></category>
+		<category><![CDATA[News]]></category>
+		<category><![CDATA[World]]></category>
+
+		<guid isPermaLink="false">https://www.boston.com/?p=14631575</guid>
+				<description><![CDATA[A report last week revealed that nine women were accusing Domingo of sexual harassment.]]></description>
+								<enclosure url="https://www.boston.com/wp-content/uploads/2019/08/download-3-2-850x638.jpg" type="image/jpeg" />	</item>
+	</channel>
+</rss>
