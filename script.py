@@ -10,26 +10,27 @@ import os
 import feedparser as fp
 import urllib.request
 from newspaper import Article
+from types import SimpleNamespace
 
 rss=[
 ]
 
 webs = [
-    'https://www.abqjournal.com/category/news-more',
-    'https://www.bostonglobe.com/world/',
-    'https://www.bostonherald.com/news/world-news/',
-    'https://www.charlotteobserver.com/news/nation-world/world/',
+    # 'https://www.abqjournal.com/category_/news-more',
+    # 'https://www.bostonglobe.com/world/',
+    # 'https://www.bostonherald.com/news/world-news/',
+    # 'https://www.charlotteobserver.com/news/nation-world/world/',
     'https://www.cleveland.com/world/',
-    'https://www.star-telegram.com/news/nation-world/world',
-    'https://www.kansascity.com/news/nation-world/world',
-    'https://www.miamiherald.com/news/nation-world/world/',
-    'http://www.startribune.com/world/',
-    'https://www.nytimes.com/section/world',
-    'https://oklahoman.com/news/us-world',
-    'https://www.post-gazette.com/news/world', #parece que pilla pocas noticias...
-    'https://www.sacbee.com/news/nation-world/world/',
-    'https://www.wsj.com/news/world',
-    'https://www.washingtontimes.com/news/world/',
+    # 'https://www.star-telegram.com/news/nation-world/world',
+    # 'https://www.kansascity.com/news/nation-world/world',
+    # 'https://www.miamiherald.com/news/nation-world/world/',
+    # 'http://www.startribune.com/world/',
+    # 'https://www.nytimes.com/section/world',
+    # 'https://oklahoman.com/news/us-world',
+    # 'https://www.post-gazette.com/news/world', #parece que pilla pocas noticias...
+    # 'https://www.sacbee.com/news/nation-world/world/',
+    # 'https://www.wsj.com/news/world',
+    # 'https://www.washingtontimes.com/news/world/',
 ]
 
 # start ElasticSearch and load SpaCy NLP module
@@ -57,13 +58,19 @@ def parseArticle(article):
         print(exc)
         return (article, [])
 
-def processArticleFirstPhase(article, token_count, brand):
+def processArticleFirstPhase(article, info):
     (article, tokens) = parseArticle(article)
     for token in tokens:
-        if (token in token_count):
-            token_count[token] = token_count[token] + 1
+        freq = tokens.count(token)/len(tokens) 
+        if (token in info.tokens):
+            info.tokens[token].count = info.tokens[token].count + 1
+            info.tokens[token].tf_sum = info.tokens[token].tf_sum + freq
         else:
-            token_count[token] = 1
+            dic = {
+                "count": 1,
+                "tf_sum": freq
+            }
+            info.tokens[token] = SimpleNamespace(**dic)
 
 def processArticleSecondPhase(article, target_tokens, brand, saved_articles):
     (article, tokens) = parseArticle(article)
@@ -116,53 +123,82 @@ def buildWeb(web, first_phase):
         return
     return paper
 
-def firstPhase(ex_count):
-    # create elastic search instance
-    body_settings = {
-        "settings": {
-            "number_of_shards": 1,
-            "number_of_replicas": 0
-        },
-        "mappings": {
-            "members": {
-                "dynamic": "strict",
-                "properties": {
-                    "newspaper_name": { "type": "text" },
-                    "url": { "type": "text" },
-                    "publication_date": { "type": "date" },
-                    "collection_date": { "type": "date" },
-                    "headline": { "type": "text" },
-                    "body": { "type": "text" },
-                    "tokens": { "type": "keyword" }
+def calculateTFIDF(info):
+    tfidf_map = {}
+    for token in info.tokens:
+        tfidf = info.tokens[token].tf_sum/math.log(info.article_count/info.tokens[token].count)
+        info.tokens[token].tfidf = tfidf
+        tfidf_map[token] = tfidf
+    with open ("tf_idf_scores.json", "w") as f:
+        json.dump(tfidf_map, j)
+
+def firstPhase(info):
+    if (info.execution_count == 0):
+        # create elastic search instance
+        body_settings = {
+            "settings": {
+                "number_of_shards": 1,
+                "number_of_replicas": 0
+            },
+            "mappings": {
+                "members": {
+                    "dynamic": "strict",
+                    "properties": {
+                        "newspaper_name": { "type": "text" },
+                        "url": { "type": "text" },
+                        "publication_date": { "type": "date" },
+                        "collection_date": { "type": "date" },
+                        "headline": { "type": "text" },
+                        "body": { "type": "text" },
+                        "tokens": { "type": "keyword" }
+                    }
                 }
             }
         }
-    }
-    es.indices.create(index="articles", ignore=400, body=body_settings)
-    token_count = {}
+        es.indices.create(index="articles", ignore=400, body=body_settings)
     # crawl webs
     for web in webs:
         paper = buildWeb(web, True)
         for article in paper.articles:
-            processArticleFirstPhase(article, token_count, paper.brand)
+            info.article_count += 1
+            es.index(index='articles', body={
+                "url": article.url,
+                "newspaper_name": paper.brand,
+                "collection_date": datetime.now()
+            }) #save link to elasticSearch
+            processArticleFirstPhase(article, info)
     # crawl RSS feeds
     for url_feed in rss:
         feed = urllib.request.urlretrieve(url_feed)
         parsed_feed = fp.parse(feed) 
         for entry in parsed_feed.entries:
-            processArticleFirstPhase(Article(entry.link), token_count, 'todo')
+            info.article_count += 1
+            es.index(index='articles', body={
+                "url": entry.link,
+                "collection_date": datetime.now()
+            }) #save link to elasticSearch
+            processArticleFirstPhase(Article(entry.link), info)
 
-    sorted_word_dict = sorted(token_count, key=token_count.get, reverse=True)
-    if (ex_count == 7):
-        print ('Writing found tokens to file target_tokens.txt...')
-        with open ("target_tokens.txt", "w") as file:
-            i = 0
-            for word in sorted_word_dict:
-                if (len(word) > 1):
-                    i += i
-                    file.write(word + ' ' + str(token_count[word]) + '\n')
-                    if i > val:
-                        break
+    if (info.execution_count == 7):
+        calculateTFIDF(info)
+
+    #sum 1 to ex.count
+    info.execution_count += 1
+
+    nf = vars(info)
+    with open("./script_info.json", "w") as j:
+        json.dump(nf, j)
+    
+        # sorted_word_dict = sorted(token_count, key=token_count.get, reverse=True)
+        # print ('Writing found tokens to file target_tokens.txt...')
+        # with open ("target_tokens.txt", "w") as file:
+        #     i = 0
+        #     for word in sorted_word_dict:
+        #         if (len(word) > 1):
+        #             i += i
+        #             file.write(word + ' ' + str(token_count[word]) + '\n')
+        #             if i > val:
+        #                 break
     print ('Done.')
 
 def secondPhase():
@@ -188,15 +224,17 @@ def secondPhase():
     print ('Done.')
 
 # main process
-target_token_file = pathlib.Path("target_tokens.txt")
-if (not (pathlib.Path("./count.txt").exists())):
-    with open ("count.txt", "w") as file:
-        file.write(0)
-if (target_token_file.exists()):
+info = {
+    "tokens": {},
+    "execution_count": 0,
+    "article_count": 0
+}
+if (os.path.isfile('./script_info.json')):
+    with open("./script_info.json", "r") as j:
+        info = j.load()
+
+inf = SimpleNamespace(**info)
+if (inf.execution_count == 7):
     secondPhase()
 else:
-    ex_count = 0
-    with open ("count.txt") as f:
-        ex_count = int(f.read()) + 1
-        f.write(str(ex_count))
-    firstPhase(ex_count)
+    firstPhase(inf)
