@@ -20,9 +20,9 @@ webs = [
     # 'https://www.bostonglobe.com/world/',
     # 'https://www.bostonherald.com/news/world-news/',
     # 'https://www.charlotteobserver.com/news/nation-world/world/',
-    'https://www.cleveland.com/world/',
+    # 'https://www.cleveland.com/world/',
     # 'https://www.star-telegram.com/news/nation-world/world',
-    # 'https://www.kansascity.com/news/nation-world/world',
+    'https://www.kansascity.com/news/nation-world/world',
     # 'https://www.miamiherald.com/news/nation-world/world/',
     # 'http://www.startribune.com/world/',
     # 'https://www.nytimes.com/section/world',
@@ -61,16 +61,17 @@ def parseArticle(article):
 def processArticleFirstPhase(article, info):
     (article, tokens) = parseArticle(article)
     for token in tokens:
-        freq = tokens.count(token)/len(tokens) 
-        if (token in info.tokens):
-            info.tokens[token].count = info.tokens[token].count + 1
-            info.tokens[token].tf_sum = info.tokens[token].tf_sum + freq
-        else:
-            dic = {
-                "count": 1,
-                "tf_sum": freq
-            }
-            info.tokens[token] = SimpleNamespace(**dic)
+        if (len(token) > 1):
+            freq = tokens.count(token)/len(tokens) 
+            if (token in info['tokens']):
+                info['tokens'][token]['count'] = info['tokens'][token]['count'] + 1
+                info['tokens'][token]['tf_sum'] = info['tokens'][token]['tf_sum'] + freq
+            else:
+                dic = {
+                    "count": 1,
+                    "tf_sum": freq
+                }
+                info['tokens'][token] = dic
 
 def processArticleSecondPhase(article, target_tokens, brand, saved_articles):
     (article, tokens) = parseArticle(article)
@@ -125,15 +126,15 @@ def buildWeb(web, first_phase):
 
 def calculateTFIDF(info):
     tfidf_map = {}
-    for token in info.tokens:
-        tfidf = info.tokens[token].tf_sum/math.log(info.article_count/info.tokens[token].count)
-        info.tokens[token].tfidf = tfidf
+    for token in info['tokens']:
+        tfidf = info['tokens'][token]['tf_sum']/math.log(info['article_count']/info['tokens'][token]['count'])
+        info['tokens'][token]['tfidf'] = tfidf
         tfidf_map[token] = tfidf
     with open ("tf_idf_scores.json", "w") as f:
         json.dump(tfidf_map, j)
 
 def firstPhase(info):
-    if (info.execution_count == 0):
+    if (info.get('execution_count') == 0):
         # create elastic search instance
         body_settings = {
             "settings": {
@@ -160,7 +161,7 @@ def firstPhase(info):
     for web in webs:
         paper = buildWeb(web, True)
         for article in paper.articles:
-            info.article_count += 1
+            info['article_count'] = info.get('article_count') + 1
             es.index(index='articles', body={
                 "url": article.url,
                 "newspaper_name": paper.brand,
@@ -179,15 +180,14 @@ def firstPhase(info):
             }) #save link to elasticSearch
             processArticleFirstPhase(Article(entry.link), info)
 
-    if (info.execution_count == 7):
+    if (info.get('execution_count') == 7):
         calculateTFIDF(info)
 
     #sum 1 to ex.count
-    info.execution_count += 1
+    info['execution_count'] = info.get('execution_count') + 1
 
-    nf = vars(info)
     with open("./script_info.json", "w") as j:
-        json.dump(nf, j)
+        json.dump(info, j)
     
         # sorted_word_dict = sorted(token_count, key=token_count.get, reverse=True)
         # print ('Writing found tokens to file target_tokens.txt...')
@@ -232,9 +232,7 @@ info = {
 if (os.path.isfile('./script_info.json')):
     with open("./script_info.json", "r") as j:
         info = j.load()
-
-inf = SimpleNamespace(**info)
-if (inf.execution_count == 7):
+if (info.get('execution_count') == 7):
     secondPhase()
 else:
-    firstPhase(inf)
+    firstPhase(info)
