@@ -167,7 +167,9 @@ def firstPhase(info):
                 "newspaper_name": paper.brand,
                 "collection_date": datetime.now()
             }) #save link to elasticSearch
-            processArticleFirstPhase(article, info)
+            if (article.url not in info['crawled_urls']):
+                info['crawled_urls'] = info['crawled_urls'].append(article.url)
+                processArticleFirstPhase(article, info)
     # crawl RSS feeds
     for url_feed in rss:
         feed = urllib.request.urlretrieve(url_feed)
@@ -227,7 +229,8 @@ def secondPhase():
 info = {
     "tokens": {},
     "execution_count": 0,
-    "article_count": 0
+    "article_count": 0,
+    "crawled_urls": []
 }
 if (os.path.isfile('./script_info.json')):
     with open("./script_info.json", "r") as j:
