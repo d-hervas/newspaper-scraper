@@ -17,20 +17,20 @@ rss=[
 
 webs = [
     # 'https://www.abqjournal.com/category_/news-more',
-    # 'https://www.bostonglobe.com/world/',
-    # 'https://www.bostonherald.com/news/world-news/',
-    # 'https://www.charlotteobserver.com/news/nation-world/world/',
-    # 'https://www.cleveland.com/world/',
-    # 'https://www.star-telegram.com/news/nation-world/world',
+    'https://www.bostonglobe.com/world/',
+    'https://www.bostonherald.com/news/world-news/',
+    'https://www.charlotteobserver.com/news/nation-world/world/',
+    'https://www.cleveland.com/world/',
+    'https://www.star-telegram.com/news/nation-world/world',
     'https://www.kansascity.com/news/nation-world/world',
-    # 'https://www.miamiherald.com/news/nation-world/world/',
-    # 'http://www.startribune.com/world/',
-    # 'https://www.nytimes.com/section/world',
-    # 'https://oklahoman.com/news/us-world',
-    # 'https://www.post-gazette.com/news/world', #parece que pilla pocas noticias...
-    # 'https://www.sacbee.com/news/nation-world/world/',
-    # 'https://www.wsj.com/news/world',
-    # 'https://www.washingtontimes.com/news/world/',
+    'https://www.miamiherald.com/news/nation-world/world/',
+    'http://www.startribune.com/world/',
+    'https://www.nytimes.com/section/world',
+    'https://oklahoman.com/news/us-world',
+    'https://www.post-gazette.com/news/world', #parece que pilla pocas noticias...
+    'https://www.sacbee.com/news/nation-world/world/',
+    'https://www.wsj.com/news/world',
+    'https://www.washingtontimes.com/news/world/',
 ]
 
 # start ElasticSearch and load SpaCy NLP module
@@ -63,7 +63,7 @@ def processArticleFirstPhase(article, info):
     for token in tokens:
         if (len(token) > 1):
             freq = tokens.count(token)/len(tokens) 
-            if (token in info['tokens']):
+            if (token in info['tokens'] or []):
                 info['tokens'][token]['count'] = info['tokens'][token]['count'] + 1
                 info['tokens'][token]['tf_sum'] = info['tokens'][token]['tf_sum'] + freq
             else:
@@ -160,16 +160,21 @@ def firstPhase(info):
     # crawl webs
     for web in webs:
         paper = buildWeb(web, True)
-        for article in paper.articles:
-            info['article_count'] = info.get('article_count') + 1
-            es.index(index='articles', body={
-                "url": article.url,
-                "newspaper_name": paper.brand,
-                "collection_date": datetime.now()
-            }) #save link to elasticSearch
-            if (article.url not in info['crawled_urls']):
-                info['crawled_urls'] = info['crawled_urls'].append(article.url)
-                processArticleFirstPhase(article, info)
+        try:
+            for article in paper.articles:
+                info['article_count'] = info['article_count'] + 1
+                es.index(index='articles', body={
+                    "url": article.url,
+                    "newspaper_name": paper.brand,
+                    "collection_date": datetime.now()
+                }) #save link to elasticSearch
+                if (article.url not in info['crawled_urls']):
+                    info['crawled_urls'].append(article.url)
+                    processArticleFirstPhase(article, info)
+        except AttributeError as att:
+            print('Attribute error on web ' + web + '\n')
+            print('This probably means the web has no articles or they all have been crawled already. Continuing... /n')
+
     # crawl RSS feeds
     for url_feed in rss:
         feed = urllib.request.urlretrieve(url_feed)
