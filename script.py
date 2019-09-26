@@ -119,9 +119,6 @@ def buildWeb(web, first_phase):
     paper.parse_categories()
     paper.generate_articles()
     print ('Newspaper ' + paper.brand + ' built. Size: ' + str(paper.size()))
-    if (first_phase and paper.size() < 10):
-        print('Error, size too low')
-        return
     return paper
 
 def calculateTFIDF(info):
