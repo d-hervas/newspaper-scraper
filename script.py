@@ -4,6 +4,7 @@ import sys
 from datetime import datetime
 from elasticsearch import Elasticsearch
 import spacy
+import math
 import pathlib
 import json
 import os
