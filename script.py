@@ -9,6 +9,7 @@ import json
 import os
 import feedparser as fp
 import urllib.request
+import operator
 from newspaper import Article
 from types import SimpleNamespace
 
@@ -127,8 +128,12 @@ def calculateTFIDF(info):
         tfidf = info['tokens'][token]['tf_sum']/math.log(info['article_count']/info['tokens'][token]['count'])
         info['tokens'][token]['tfidf'] = tfidf
         tfidf_map[token] = tfidf
+    ordered_tfidf = sorted(tfidf_map.items, key=operator.itemgetter(1))
     with open ("tf_idf_scores.json", "w") as f:
         json.dump(tfidf_map, j)
+    with open ("sorted_tf_idf.txt", "w") as f:
+        for token, score in ordered_tfidf:
+            f.write(token + ":" + score + "\n")
 
 def firstPhase(info):
     if (info.get('execution_count') == 0):
@@ -184,47 +189,42 @@ def firstPhase(info):
             }) #save link to elasticSearch
             processArticleFirstPhase(Article(entry.link), info)
 
+    #sum 1 to ex.count
+    info['execution_count'] = info.get('execution_count') + 1
+
     if (info.get('execution_count') == 7):
         calculateTFIDF(info)
 
-    #sum 1 to ex.count
-    info['execution_count'] = info.get('execution_count') + 1
 
     with open("./script_info.json", "w") as j:
         json.dump(info, j)
     
-        # sorted_word_dict = sorted(token_count, key=token_count.get, reverse=True)
-        # print ('Writing found tokens to file target_tokens.txt...')
-        # with open ("target_tokens.txt", "w") as file:
-        #     i = 0
-        #     for word in sorted_word_dict:
-        #         if (len(word) > 1):
-        #             i += i
-        #             file.write(word + ' ' + str(token_count[word]) + '\n')
-        #             if i > val:
-        #                 break
     print ('Done.')
 
 def secondPhase():
-    print ('Loading tokens from target_tokens.txt...')
+    print ('Loading tokens...')
     target_tokens = []
-    with open ("target_tokens.txt", "r") as file:
+    with open ("sorted_tf_idf.txt", "r") as file:
         i = 0
         for word in file:
             i += 1
-            target_tokens.append(word.split()[0])
+            target_tokens.append(word.split(":")[0])
             if (i > val):
                 break
     print ('Read ' + str(i) + ' lines.')
     date = datetime.now().strftime("%m-%d")
     os.mkdir('./'+date)
     for web in webs:
-        paper = buildWeb(web, False)
-        saved_articles = []
-        for article in paper.articles:
-            processArticleSecondPhase(article, target_tokens, paper.brand, saved_articles)
-            with open('./'+date+'/'+paper.brand+".json", "w") as wrt_article:
-                json.dump(saved_articles, wrt_article)
+        try:
+            paper = buildWeb(web, False)
+            saved_articles = []
+            for article in paper.articles:
+                processArticleSecondPhase(article, target_tokens, paper.brand, saved_articles)
+                with open('./'+date+'/'+paper.brand+".json", "w") as wrt_article:
+                    json.dump(saved_articles, wrt_article)
+        except AttributeError as att:
+            print('Attribute error on web ' + web + '\n')
+            print('This probably means the web has no articles or they all have been crawled already. Continuing... /n')
     print ('Done.')
 
 # main process
