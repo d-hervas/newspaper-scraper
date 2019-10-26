@@ -131,7 +131,7 @@ def calculateTFIDF(info):
         tfidf_map[token] = tfidf
     ordered_tfidf = sorted(tfidf_map.items, key=operator.itemgetter(1))
     with open ("tf_idf_scores.json", "w") as f:
-        json.dump(tfidf_map, j)
+        json.dump(tfidf_map, f)
     with open ("sorted_tf_idf.txt", "w") as f:
         for token, score in ordered_tfidf:
             f.write(token + ":" + score + "\n")
