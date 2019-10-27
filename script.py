@@ -129,7 +129,7 @@ def calculateTFIDF(info):
         tfidf = info['tokens'][token]['tf_sum']/math.log(info['article_count']/info['tokens'][token]['count'])
         info['tokens'][token]['tfidf'] = tfidf
         tfidf_map[token] = tfidf
-    ordered_tfidf = sorted(tfidf_map.items, key=operator.itemgetter(1))
+    ordered_tfidf = sorted(tfidf_map.items(), key=operator.itemgetter(1))
     with open ("tf_idf_scores.json", "w") as f:
         json.dump(tfidf_map, f)
     with open ("sorted_tf_idf.txt", "w") as f:
