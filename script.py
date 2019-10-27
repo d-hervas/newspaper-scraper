@@ -134,7 +134,7 @@ def calculateTFIDF(info):
         json.dump(tfidf_map, f)
     with open ("sorted_tf_idf.txt", "w") as f:
         for token, score in ordered_tfidf:
-            f.write(token + ":" + score + "\n")
+            f.write(token + ":" + str(score) + "\n")
 
 def firstPhase(info):
     if (info.get('execution_count') == 0):
