@@ -237,7 +237,7 @@ info = {
 }
 if (os.path.isfile('./script_info.json')):
     with open("./script_info.json", "r") as j:
-        info = j.load()
+        info = json.load(j)
 if (info.get('execution_count') == 7):
     secondPhase()
 else:
